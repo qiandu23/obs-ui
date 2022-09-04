@@ -5,15 +5,15 @@ class StorageService {
     return httpRequestWithAuth(getToken(), getAccount()).get('/api/storage/list-storage')
   }
 
-  createStorage(name, endpoint, accessKey, secretKey) {
+  createStorage(name, endpoint, accessKey, secretKey, region) {
     return httpRequestWithAuth(getToken(), getAccount()).post('/api/storage/create-storage', {
-      name, endpoint, accessKey, secretKey
+      name, endpoint, accessKey, secretKey, region,
     })
   }
 
-  updateStorage(id, name, endpoint, accessKey, secretKey) {
+  updateStorage(id, name, endpoint, accessKey, secretKey, region) {
     return httpRequestWithAuth(getToken(), getAccount()).put('/api/storage/update-storage', {
-      id, name, endpoint, accessKey, secretKey
+      id, name, endpoint, accessKey, secretKey, region,
     })
   }
 

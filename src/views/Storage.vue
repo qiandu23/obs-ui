@@ -31,6 +31,11 @@
               </el-table-column>
               <el-table-column
                   align="center"
+                  prop="region"
+                  label="Region">
+              </el-table-column>
+              <el-table-column
+                  align="center"
                   prop="accessKey"
                   label="Access Key">
               </el-table-column>
@@ -72,6 +77,10 @@
         <el-form-item label="Secret Key" :label-width="formLabelWidth">
           <el-input v-model="form.secretKey" maxlength="100" show-word-limit></el-input>
         </el-form-item>
+        <el-form-item label="Region" :label-width="formLabelWidth">
+          <el-input v-model="form.region" maxlength="100" show-word-limit
+          placeholder="Optional"></el-input>
+        </el-form-item>
         <el-alert
             @close="clearFormErrorMessage"
             v-show="!!formErrorMessage"
@@ -109,7 +118,8 @@ export default {
         name: '',
         endpoint: '',
         accessKey: '',
-        secretKey: ''
+        secretKey: '',
+        region: ''
       },
       formLabelWidth: '100px',
       formErrorMessage: '',
@@ -139,6 +149,7 @@ export default {
       this.form.endpoint = ''
       this.form.accessKey = ''
       this.form.secretKey = ''
+      this.form.region = ''
       this.clearFormErrorMessage()
       this.formVisible = true
     },
@@ -150,6 +161,7 @@ export default {
       this.form.endpoint = row.endpoint
       this.form.accessKey = row.accessKey
       this.form.secretKey = row.secretKey
+      this.form.region = row.region
       this.clearFormErrorMessage()
       this.formVisible = true
     },
@@ -162,8 +174,8 @@ export default {
       async.waterfall([
         cb => {
           if (self.isAdd) {
-            const {name, endpoint, accessKey, secretKey} = self.form
-            storageService.createStorage(name, endpoint, accessKey, secretKey).then(res => {
+            const {name, endpoint, accessKey, secretKey, region} = self.form
+            storageService.createStorage(name, endpoint, accessKey, secretKey, region).then(res => {
               const result = getResponseJson(res)
               self.$message.success(result.message)
               self.formVisible = false
@@ -173,8 +185,8 @@ export default {
               cb(new Error(getResponseError(err)))
             })
           } else {
-            const {id, name, endpoint, accessKey, secretKey} = self.form
-            storageService.updateStorage(id, name, endpoint, accessKey, secretKey).then(res => {
+            const {id, name, endpoint, accessKey, secretKey, region} = self.form
+            storageService.updateStorage(id, name, endpoint, accessKey, secretKey, region).then(res => {
               const result = getResponseJson(res)
               self.$message.success(result.message)
               self.formVisible = false
