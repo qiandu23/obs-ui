@@ -34,11 +34,6 @@
                   prop="accessKey"
                   label="Access Key">
               </el-table-column>
-              <el-table-column
-                  align="center"
-                  prop="secretKey"
-                  label="Secret Key">
-              </el-table-column>
               <el-table-column label="Operation" align="center">
                 <template slot-scope="scope">
                   <el-dropdown size="mini" @command="(command)=>handleOperationClick(command,scope.row)">
@@ -144,6 +139,7 @@ export default {
       this.form.endpoint = ''
       this.form.accessKey = ''
       this.form.secretKey = ''
+      this.clearFormErrorMessage()
       this.formVisible = true
     },
     openEditDialog(row) {
@@ -154,6 +150,7 @@ export default {
       this.form.endpoint = row.endpoint
       this.form.accessKey = row.accessKey
       this.form.secretKey = row.secretKey
+      this.clearFormErrorMessage()
       this.formVisible = true
     },
     confirmCreateOrUpdateStorage() {
