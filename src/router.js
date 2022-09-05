@@ -3,6 +3,7 @@ import {authAccount} from './common'
 
 const SignIn = () => import('./views/SignIn')
 const Storage = () => import('./views/Storage')
+const Bucket = () => import('./views/Bucket')
 const NotFound = () => import('./views/NotFound')
 
 const router = new VueRouter({
@@ -12,6 +13,7 @@ const router = new VueRouter({
     {path: '', redirect: '/storage'},
     {path: '/sign-in', component: SignIn,},
     {path: '/storage', component: Storage,},
+    {path: '/bucket', component: Bucket,},
     {path: '/404', component: NotFound,},
     {path: '*', redirect: '/404'},
   ]
