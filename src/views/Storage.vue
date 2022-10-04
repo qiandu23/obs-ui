@@ -75,11 +75,11 @@
           <el-input v-model="form.accessKey" maxlength="50" show-word-limit></el-input>
         </el-form-item>
         <el-form-item label="Secret Key" :label-width="formLabelWidth">
-          <el-input v-model="form.secretKey" maxlength="100" show-word-limit></el-input>
+          <el-input v-model="form.secretKey" maxlength="100" show-word-limit show-password></el-input>
         </el-form-item>
         <el-form-item label="Region" :label-width="formLabelWidth">
           <el-input v-model="form.region" maxlength="100" show-word-limit
-          placeholder="Optional"></el-input>
+                    placeholder="Optional"></el-input>
         </el-form-item>
         <el-alert
             @close="clearFormErrorMessage"
@@ -302,7 +302,7 @@ export default {
       self.viewWidth = viewportSize().width
       self.isMobile = self.viewWidth < 768
     }
-    self.$store.commit('updateActiveIndex', '/storage-class')
+    self.$store.commit('updateActiveIndex', '/storage')
     self.$store.dispatch('getAdminRole', self.initStorage)
   }
 }

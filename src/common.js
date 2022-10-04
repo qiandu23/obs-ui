@@ -24,6 +24,27 @@ export const httpRequestWithAuth = (token, account) => {
   })
 }
 
+export const httpRequestPutFileWithAuth = (token, account, url, data, res) => {
+  console.info(data)
+  return axios({
+    baseURL: baseUrl,
+    method: 'PUT',
+    headers: {
+      'Content-type': 'application/octet-stream',
+      'Token': token,
+      'Account': encodeURI(account),
+      'X-Custom-Data': encodeURI(JSON.stringify(data))
+    },
+    onUploadProgress: (event) => {
+      event.percent = event.loaded / event.total * 100 | 0
+      res.onProgress(event)
+    },
+    url,
+    data: res.file,
+    withCredentials: true,
+  })
+}
+
 export const setToken = (token) => {
   localStorage.setItem('token', token)
 }
