@@ -25,7 +25,6 @@ export const httpRequestWithAuth = (token, account) => {
 }
 
 export const httpRequestPutFileWithAuth = (token, account, url, data, res) => {
-  console.info(data)
   return axios({
     baseURL: baseUrl,
     method: 'PUT',

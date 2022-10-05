@@ -59,10 +59,10 @@
                       Operation<i class="el-icon-arrow-down el-icon--right"></i>
                     </el-button>
                     <el-dropdown-menu slot="dropdown">
-                      <el-dropdown-item command="del" class="dropdown-item"><i class="el-icon-delete el-icon--left"></i>Delete
-                      </el-dropdown-item>
                       <el-dropdown-item command="visit" class="dropdown-item"><i
                           class="el-icon-right el-icon--left"></i>Visit
+                      </el-dropdown-item>
+                      <el-dropdown-item command="del" class="dropdown-item"><i class="el-icon-delete el-icon--left"></i>Delete
                       </el-dropdown-item>
                     </el-dropdown-menu>
                   </el-dropdown>
@@ -104,6 +104,9 @@
                       Operation<i class="el-icon-arrow-down el-icon--right"></i>
                     </el-button>
                     <el-dropdown-menu slot="dropdown">
+                      <el-dropdown-item command="share" class="dropdown-item"><i
+                          class="el-icon-share el-icon--left"></i>Share
+                      </el-dropdown-item>
                       <el-dropdown-item command="del" class="dropdown-item"><i class="el-icon-delete el-icon--left"></i>Delete
                       </el-dropdown-item>
                     </el-dropdown-menu>
@@ -165,8 +168,7 @@
               action=""
               :auto-upload="false"
               :http-request="confirmUploadObject"
-              :multiple="false"
-              :limit="fileLimit"
+              :multiple="true"
               :on-exceed="exceedFile"
               :on-success="onFileUploadSuccess"
               :on-error="onFileUploadError"
@@ -184,6 +186,21 @@
       <div slot="footer" class="dialog-footer">
         <el-button @click="formObjectVisible = false">Cancel</el-button>
         <el-button type="primary" @click="submitFile">Confirm
+        </el-button>
+      </div>
+    </el-dialog>
+
+    <el-dialog title="Share Link" :visible.sync="formDownloadVisible" :close-on-click-modal="false"
+               :width="isMobile?'95%':'50%'">
+      <el-input
+          type="textarea"
+          :autosize="{ minRows: 2, maxRows: 6}"
+          v-model="formDownloadUrl" :readonly="true" resize="none">
+      </el-input>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="()=>{this.formDownloadVisible=false}">Close
+        </el-button>
+        <el-button type="primary"><a :href="formDownloadUrl" style="color: aliceblue;text-decoration:none">Download</a>
         </el-button>
       </div>
     </el-dialog>
@@ -213,6 +230,7 @@ export default {
       isAdd: false,
       formVisible: false,
       formObjectVisible: false,
+      formDownloadVisible: false,
       form: {
         id: '',
         name: '',
@@ -246,6 +264,7 @@ export default {
         currentFileCount: 0,
         dealFileCount: 0
       },
+      formDownloadUrl: ''
     }
   },
   components: {UIHeader,},
@@ -312,8 +331,28 @@ export default {
     },
     handleObjectOperationClick(command, row) {
       if (command === 'del') {
-        console.info(row)
+        this.deleteObject(row)
+      } else if (command === 'share') {
+        this.openDownloadDialog(row)
       }
+    },
+    openDownloadDialog(row) {
+      const self = this
+      bucketService.shareObject(self.selectedStorageName, self.currentBucket, row.name).then(res => {
+        self.formDownloadUrl = getResponseJson(res).url
+        self.formDownloadVisible = true
+      }).catch(err => {
+        let errorStatus = getResponseStatus(err)
+        let errorMessage = getResponseError(err)
+        if (errorStatus === 401 && err) {
+          self.$router.replace(`/sign-in`)
+          return
+        }
+
+        if (err) {
+          self.$message.error(errorMessage)
+        }
+      })
     },
     openCreateDialog() {
       this.formTitle = 'New Bucket'
@@ -494,7 +533,6 @@ export default {
       const self = this
       let errorStatus = 500
       self.isTruncated = false
-      self.prefix = ''
       self.marker = ''
       self.nextMarker = ''
       self.objectData = []
@@ -549,12 +587,13 @@ export default {
     confirmUploadObject(res) {
       const self = this
       let errorStatus = 500
-
+      const file = res.file
       const timer = self.getTokenTimer()
       async.waterfall([
         cb => {
-          bucketService.uploadObject(self.selectedStorageName, self.currentBucket, res).then(res => {
-            console.info(res)
+          bucketService.uploadObject(self.selectedStorageName, self.currentBucket, self.prefix, file, res).then(res => {
+            const result = getResponseJson(res)
+            self.$message.info(result.message)
             cb(null)
           }).catch(err => {
             errorStatus = getResponseStatus(err)
@@ -629,6 +668,55 @@ export default {
     },
     exceedFile() {
       this.$message.warning(`Because process performance，upload maximum ${this.fileLimit} files`)
+    },
+    deleteObject(row) {
+      const self = this
+      let errorStatus = 500
+      let isCancel = false
+      async.waterfall([
+        cb => {
+          self.$confirm('This operation will permanently delete the object. Continue?', 'Tip', {
+            confirmButtonText: 'Confirm',
+            cancelButtonText: 'Cancel',
+            type: 'warning',
+            center: true,
+            customClass: self.isMobile ? 'mobile-confirm-box' : 'confirm-box'
+          }).then(() => {
+            cb(null)
+          }).catch(() => {
+            isCancel = true
+            self.$message({
+              type: 'info',
+              message: 'Delete Be Canceled'
+            })
+            cb(null)
+          })
+        },
+        cb => {
+          if (isCancel) return cb(null)
+          bucketService.deleteObject(self.selectedStorageName, self.currentBucket, row.name).then(res => {
+            const result = getResponseJson(res)
+            self.$message.success(result.message)
+            cb(null)
+          }).catch(err => {
+            errorStatus = getResponseStatus(err)
+            cb(new Error(getResponseError(err)))
+          })
+        },
+        cb => {
+          if (isCancel) return cb(null)
+          self.refreshObjectList(err => cb(err))
+        }
+      ], err => {
+        if (errorStatus === 401 && err) {
+          self.$router.replace(`/sign-in`)
+          return
+        }
+
+        if (err) {
+          self.$message.error(err.message)
+        }
+      })
     },
     initBucket() {
       const self = this

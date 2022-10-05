@@ -27,10 +27,25 @@ class BucketService {
         `&marker=${encodeURI(marker)}&maxKeys=${maxKeys}`)
   }
 
-  uploadObject(storageName, bucketName, res) {
+  uploadObject(storageName, bucketName, prefix, file, res) {
+    const {name, size, type} = file
     return httpRequestPutFileWithAuth(getToken(), getAccount(), '/api/bucket/put-object', {
-      storageName, bucket: bucketName
+      storageName, bucket: bucketName, prefix, file: {name, size, type}
     }, res)
+  }
+
+  deleteObject(storageName, bucketName, objectName) {
+    return httpRequestWithAuth(getToken(), getAccount())({
+      method: 'delete',
+      url: '/api/bucket/delete-object',
+      data: {storageName, bucketName, objectName}
+    })
+  }
+
+  shareObject(storageName, bucketName, objectName) {
+    return httpRequestWithAuth(getToken(), getAccount())
+      .get('/api/bucket/share-object?' +
+        `storageName=${encodeURI(storageName)}&bucketName=${encodeURI(bucketName)}&objectName=${encodeURI(objectName)}`)
   }
 }
 
